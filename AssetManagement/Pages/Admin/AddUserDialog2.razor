@@ -1,0 +1,170 @@
+﻿@page "/admin/register"
+@using AssetManagement.Entities
+@using AssetManagement.Data.Models.Identity
+@using AssetManagement.Services
+@using Microsoft.AspNetCore.Identity
+@using Telerik.Blazor
+@using Telerik.Blazor.Components
+@using Telerik.DataSource
+@using static Telerik.Blazor.ThemeConstants
+
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject CustomIdentityService IdentitySvc
+
+@*****************************************************************
+
+    (Dialog로 구현 : AddUserDialog참고)
+    Id          : 사원번호
+    Password    : *******
+    HangulName  : 사원이름
+    Role        : Combobox
+    CompanyName : 회사이름, 또는 지역이름
+    Department  : 부서이름 (Site와 동일 가능)
+
+    Register : 등록
+    Cancel   : 취소
+ *****************************************************************@
+
+<TelerikDialog Visible="true" Title="사용자 추가" Width="700px" Class="dialog-background">
+    <DialogContent>
+
+        <TelerikForm Model="@NewUserRegisterRequestModel"
+                     @ref="@AddUserFormRef"
+                     OnValidSubmit="@HandleValidSubmit"
+                     OnInvalidSubmit="@HandleInvalidSubmit"
+                     Orientation="FormOrientation.Vertical">
+            <FormValidation>
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+            </FormValidation>
+
+            <FormItems>
+                <FormItem Field="@nameof(RegisterRequestModel.UserName)">
+                    <Template>
+                        <label for="fname" class="k-label k-form-label">ID*:</label>
+                        <TelerikTextBox Id="fname" @bind-Value="@NewUserRegisterRequestModel.UserName"></TelerikTextBox>
+                        <TelerikValidationMessage For="@(() => NewUserRegisterRequestModel.UserName)"></TelerikValidationMessage>
+                    </Template>
+                </FormItem>
+                <FormItem Field="@nameof(RegisterRequestModel.Password)">
+                    <Template>
+                        <label for="pass" class="k-label k-form-label">Password*:</label>
+                        <TelerikTextBox Id="pass" @bind-Value="@NewUserRegisterRequestModel.Password" Password="true"></TelerikTextBox>
+                        <TelerikValidationMessage For="@(() => NewUserRegisterRequestModel.Password)"></TelerikValidationMessage>
+                    </Template>
+                </FormItem>
+                <FormItem Field="@nameof(RegisterRequestModel.HangulName)">
+                    <Template>
+                        <label for="fname" class="k-label k-form-label">Name*:</label>
+                        <TelerikTextBox Id="fname" @bind-Value="@NewUserRegisterRequestModel.HangulName"></TelerikTextBox>
+                        <TelerikValidationMessage For="@(() => NewUserRegisterRequestModel.HangulName)"></TelerikValidationMessage>
+                    </Template>
+                </FormItem>
+                <FormItem Field="@nameof(RegisterRequestModel.Role)">
+                    <Template>
+                        <label for="role" class="k-label k-form-label">Role*:</label>
+                        <TelerikDropDownList Id="role" Data="@Roles" @bind-Value="NewUserRegisterRequestModel.Role"></TelerikDropDownList>
+                    </Template>
+                </FormItem>
+                <FormItem Field="@nameof(RegisterRequestModel.CompanyName)">
+                    <Template>
+                        <label for="fname" class="k-label k-form-label">CompanyName*:</label>
+                        <TelerikTextBox Id="fname" @bind-Value="@NewUserRegisterRequestModel.CompanyName"></TelerikTextBox>
+                        <TelerikValidationMessage For="@(() => NewUserRegisterRequestModel.CompanyName)"></TelerikValidationMessage>
+                    </Template>
+                </FormItem>
+                <FormItem Field="@nameof(RegisterRequestModel.Department)">
+                    <Template>
+                        <label for="fname" class="k-label k-form-label">Department*:</label>
+                        <TelerikTextBox Id="fname" @bind-Value="@NewUserRegisterRequestModel.Department"></TelerikTextBox>
+                        <TelerikValidationMessage For="@(() => NewUserRegisterRequestModel.Department)"></TelerikValidationMessage>
+                    </Template>
+                </FormItem>
+            </FormItems>
+
+            <FormButtons>
+                <TelerikButton ButtonType="ButtonType.Submit" ThemeColor="@(ThemeConstants.Button.ThemeColor.Primary)">등록</TelerikButton>
+                <TelerikButton ButtonType="ButtonType.Button" OnClick="@OnAddUserDialogCancel">취소</TelerikButton>
+            </FormButtons>
+
+        </TelerikForm>
+
+    </DialogContent>
+
+</TelerikDialog>
+
+<div class="notification-parent">
+    <TelerikNotification @ref="AddUserNotificationComponent"
+                         Class="MyTelerikNotification"
+                         VerticalPosition="@NotificationVerticalPosition.Top"
+                         HorizontalPosition="@NotificationHorizontalPosition.Center">
+    </TelerikNotification>
+</div>
+
+@code {
+    public RegisterRequestModel NewUserRegisterRequestModel { get; set; } = new RegisterRequestModel();
+    private List<string> Roles { get; set; } = new List<string> { "Reporter", "General", "Manager", "Admin" };
+    public TelerikForm AddUserFormRef { get; set; }
+    public TelerikNotification AddUserNotificationComponent { get; set; }
+    public bool ValidSubmit { get; set; } = false;
+    public bool ShowErrors { get; set; }
+
+    [Parameter]
+    public EventCallback<RegisterRequestModel> AddUserFinished { get; set; }
+
+    async void HandleValidSubmit()
+    {
+        ValidSubmit = true;
+        var result = await IdentitySvc.RegisterUserAsync(NewUserRegisterRequestModel);
+
+        if (result.Succeeded)
+        {
+            await ActivateAlert("사용자등록 성공", NewUserRegisterRequestModel.HangulName + ", Id=" + NewUserRegisterRequestModel.UserName);
+            this.ShowErrors = false;
+
+            AddUserNotificationComponent.Show(new NotificationModel
+                {
+                    Text = "사용자 등록 성공",
+                    ThemeColor = "error",
+                    CloseAfter = 3000
+                });
+
+            await AddUserFinished.InvokeAsync(NewUserRegisterRequestModel); // pass Param to parent, by calling EventCallback
+        }
+        else
+        {
+            string reason = "";
+            if (result.Errors.Count() > 0)
+                reason = result.Errors.First().Description;
+            ShowErrors = true;
+            await ActivateAlert("사용자등록 실패", reason);
+        }
+
+        ValidSubmit = false;
+
+        StateHasChanged();
+    }
+
+    void HandleInvalidSubmit()
+    {
+        ValidSubmit = false;
+    }
+
+    void OnAddUserDialogCancel()
+    {
+        //ValidSubmit = false;
+        AddUserFinished.InvokeAsync(NewUserRegisterRequestModel); // pass Param to parent, by calling EventCallback
+    }
+
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+    public async Task ActivateAlert(string title, string message)
+    {
+        if (string.IsNullOrWhiteSpace(title)) title = "Warning!";
+        if (string.IsNullOrWhiteSpace(message)) message = "Something went wrong!";
+
+        await Dialogs.AlertAsync(message, title);
+    }
+}
+
+

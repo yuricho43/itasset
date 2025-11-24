@@ -1,0 +1,108 @@
+﻿@page "/home"
+@using AssetManagement.Common
+@using AssetManagement.Services
+@using Microsoft.AspNetCore.Identity
+@using AssetManagement.Entities;
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using Telerik.SvgIcons
+@using Telerik.Windows.Documents.Spreadsheet.Model
+
+@inject ILogger<AuthTest> Logger
+@inject AssetService svcAsset
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+@inject CustomIdentityService IdentitySvc
+
+<PageTitle>Home</PageTitle>
+
+<PageTitle>FST Digital System</PageTitle>
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 홈페이지 </div>
+
+<AuthorizeView>
+    <Authorized>
+        <h2>@gStringUser (@gStringName)가(이) 로그인 되었습니다.</h2>
+        <h2>Role은 @gStringRole 입니다.</h2>
+        <br />
+        <strong>Row End : </strong>
+        <TelerikTextBox Id="rowEnd" @bind-Value="@tRowEnd" Width="60px" />
+
+        <TelerikButton Class="SearchButton" ThemeColor="success" Enabled="true" OnClick="@ReadAssetFile" Icon="SvgIcon.FileExcel">Read Excel</TelerikButton>
+
+    </Authorized>
+    <NotAuthorized>
+        <h2>    로그인을 먼저 하세요</h2>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    public string gStringUser = "A";
+    public string gStringRole = "A";
+    public string gStringName = "A";
+
+    private string tRowEnd { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        string strUser = "";
+        IList<string> currentUserRoles;
+        try
+        {
+            strUser = UserManager.GetUserName(HttpContextAccessor.HttpContext.User);
+            gStringUser = strUser;
+
+            currentUserRoles = await IdentitySvc.GetCurrentUserRolesAsync();
+            gStringRole = currentUserRoles.First().ToString();
+            gStringName = await IdentitySvc.GetCurrentLoginNamePublic();
+
+            Logger.LogInformation("AssetManagement Initialized: user=" + strUser);
+        } catch
+        {
+
+        }
+    }
+
+    private void ReadAssetFile()
+    {
+
+        Workbook workbook;
+
+        try
+        {
+            workbook = ExcelLoader.LoadExcelFile("/csfiles/asset.xlsx");
+        } catch (Exception ex)
+        {
+            Console.WriteLine("Excel file maybe opened!!!");
+            return;
+        }
+
+        Worksheet worksheet = workbook.Worksheets[0];
+        string[] values = new string[30];
+        string rowValue = "";
+        int iRowEnd = int.Parse(tRowEnd);
+
+        //--- Cell은 0 base
+
+        for (int row = 2; row <= iRowEnd; row++)
+        {
+            rowValue = "";
+
+            for (int column = 1; column < 23; column++)
+            {
+                values[column] = worksheet.Cells[row, column].GetValue()?.Value?.RawValue ?? "";
+                rowValue = rowValue + " ! " + values[column];
+
+            }
+
+            Console.WriteLine("Row = {0} : {1}", row, rowValue);
+
+            svcAsset.InsertIntoAssetTable(values, gStringUser);
+        }
+
+    }
+
+}

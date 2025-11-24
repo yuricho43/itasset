@@ -1,0 +1,408 @@
+﻿@page "/adminpage"
+@using AssetManagement.Entities
+@using AssetManagement.Data.Models.Identity
+@using AssetManagement.Services
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using Telerik.SvgIcons;
+
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager NavigationManager
+@inject CustomIdentityService IdentitySvc
+
+<PageTitle>AssetManagement</PageTitle>
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 관리자 </div>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="flex-center">
+            <TelerikCard>
+                <CardHeader>
+                    <CardTitle><h2 class="card-title mb-4" style="align-self:center"><strong>사용자 관리</strong></h2></CardTitle>
+                    <CardSubTitle>조회/수정/추가/삭제</CardSubTitle>
+                </CardHeader>
+
+                <TelerikGrid Data=@tUserList
+                             @ref="@GridRef1"
+                             EditMode="@GridEditMode.Inline"
+                             Height="500px"
+                             Resizable="true"
+                             Pageable="true"
+                             PageSize="@PageSize"
+                             OnUpdate="@ChangeUserRole"
+                             OnDelete="@DeleteUser">
+                    <GridToolBarTemplate>
+                        <GridCommandButton OnClick="ShowAddUserDialog" Icon="@SvgIcon.PlusCircle" ThemeColor="@(ThemeConstants.Button.ThemeColor.Error)" Class="add-user-button"><strong>사용자 추가</strong></GridCommandButton>
+                    </GridToolBarTemplate>
+
+                    <GridSettings>
+                        <GridValidationSettings Enabled="@EnabledValidation" />
+                    </GridSettings>
+                    <GridColumns>
+                        <GridColumn Field=@nameof(UserAuthInfoModel.UserName) Width="100px" Title="ID" Editable="false" />
+                        <GridColumn Field=@nameof(UserAuthInfoModel.HangulName) Width="80px" Title="Name" Editable="false" />
+                        <GridColumn Field=@nameof(UserAuthInfoModel.CompanyName) Width="140px" Title="Country" Editable="false" />
+                        <GridColumn Field=@nameof(UserAuthInfoModel.Department) Width="140px" Title="CS Site" Editable="false" />
+                        <GridColumn Field=@nameof(UserAuthInfoModel.Role) Width="80px" Title="Role">
+                            <EditorTemplate Context="rolecontext">
+                                @{
+                                    var model = rolecontext as UserAuthInfoModel;
+                                    <TelerikDropDownList Data="@UserRoleNames" @bind-Value="@model.Role" />
+                                }
+                            </EditorTemplate>                          
+                        </GridColumn>
+                        <GridCommandColumn Width="250px" Context="mycontext">
+                            <GridCommandButton Icon="@SvgIcon.Lock" Command="Edit" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">권한변경</GridCommandButton>
+                            <GridCommandButton Icon="@SvgIcon.ArrowRotateCcw" OnClick="@((args)=> ResetPassword(args.Item as UserAuthInfoModel))" ThemeColor="@(ThemeConstants.Button.ThemeColor.Primary)">암호초기화</GridCommandButton>
+                            <GridCommandButton Icon="@SvgIcon.Trash" Command="Delete" ThemeColor="@(ThemeConstants.Button.ThemeColor.Warning)">계정삭제</GridCommandButton>
+                            <GridCommandButton Icon="@SvgIcon.Save" Command="Save" ThemeColor="@(ThemeConstants.Button.ThemeColor.Warning)" ShowInEdit="true">변경저장</GridCommandButton>
+                            <GridCommandButton Icon="@SvgIcon.Cancel" Command="Cancel" ShowInEdit="true">취소</GridCommandButton>
+                        </GridCommandColumn>
+
+                    </GridColumns>
+
+                </TelerikGrid>
+                <CardBody>
+                </CardBody>
+            </TelerikCard>
+
+            <div class="notification-parent">
+                <TelerikNotification @ref="UserManagementNotificationComponent"
+                                     Class="MyTelerikNotification"
+                                     VerticalPosition="@NotificationVerticalPosition.Top"
+                                     HorizontalPosition="@NotificationHorizontalPosition.Center">
+                </TelerikNotification>
+            </div>
+
+            @if (AddUserDialogVisible)
+            {
+                <AddUserDialog2 AddUserFinished="OnAddUserFinished"></AddUserDialog2>
+            }
+
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <h2>    로그인을 먼저 하세요</h2>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    int PageSize = 15;
+    private List<UserAuthInfoModel> tUserList { get; set; } = new List<UserAuthInfoModel>();
+    public bool EnabledValidation { get; set; } = true;
+    private TelerikGrid<UserAuthInfoModel> GridRef1 { get; set; }
+    public bool AddUserDialogVisible { get; set; } = false;
+    public bool ShowErrors { get; set; }
+    public TelerikNotification UserManagementNotificationComponent { get; set; }
+    private bool bIsAdmin { get; set; } = false;
+
+    //--- Roles
+    public List<string> UserRoleNames { get; set; } = new List<string>();
+    private IList<string> currentUserRoles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUserRoles = await IdentitySvc.GetCurrentUserRolesAsync();
+        string role = currentUserRoles.First().ToString();
+        if (role == "Admin")
+            bIsAdmin = true;
+        else
+            bIsAdmin = false;
+
+        await LoadData();
+
+        UserRoleNames.Clear();
+        List<IdentityRole> UserRoles = IdentitySvc.GetAllRoles();
+        foreach (var userRole in UserRoles)
+        {
+            UserRoleNames.Add(userRole.Name);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LoadData()
+    {
+        if (bIsAdmin == false)
+            return;
+
+        tUserList.Clear();
+        var allUsers = UserManager.Users.ToList();
+        foreach (var user in allUsers)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            tUserList.Add(new UserAuthInfoModel
+                {
+                    UserName = user.UserName,
+                    HangulName = user.HangulName,
+                    Department = user.Department,
+                    CompanyName = user.CompanyName,
+                    Role = roles.ToList().Last()
+                });
+        }
+
+        tUserList = tUserList.OrderBy(n => n.UserName).ToList();
+
+        GridRef1.Rebind();
+    }
+
+    //--- 권한변경 버튼 눌렀을때 (Grid::OnUpdate)
+    private async void ChangeUserRole(GridCommandEventArgs args)
+    {
+        var model = (UserAuthInfoModel)args.Item;
+        var result = await IdentitySvc.ChangeUserRoleAsync(model);
+
+        if (result.Succeeded)
+        {
+            this.ShowErrors = false;
+
+            UserManagementNotificationComponent.Show(new NotificationModel
+                {
+                    Text = $"사용자({model.UserName}) 권한변경({model.Role}) 성공",
+                    ThemeColor = "success",
+                    //CloseAfter = 3000
+                });
+
+            await LoadData();
+            StateHasChanged();
+        }
+        else
+        {
+            string reason = "";
+            if (result.Errors.Count() > 0)
+                reason = result.Errors.First().Description;
+            this.ShowErrors = true;
+            //await ActivateAlert("Role변경 실패", reason);
+        }
+    }
+
+    private async Task DeleteUser(GridCommandEventArgs args)
+    {
+        var userinfo = (UserAuthInfoModel)args.Item;
+        bool confirmed = await Dialogs.ConfirmAsync(userinfo.UserName + " 계정은 영구 삭제 됩니다.", "계정 삭제");
+
+        if (confirmed)
+        {
+
+            var result = await IdentitySvc.DeleteUserAsync(userinfo.UserName);
+
+            if (result.Succeeded)
+            {
+                this.ShowErrors = false;
+
+                UserManagementNotificationComponent.Show(new NotificationModel
+                    {
+                        Text = "사용자 계정삭제 성공",
+                        ThemeColor = "success",
+                        //CloseAfter = 3000
+                    });
+            }
+            else
+            {
+                string reason = "";
+                if (result.Errors.Count() > 0)
+                    reason = result.Errors.First().Description;
+                this.ShowErrors = true;
+                //await ActivateAlert("Role변경 실패", reason);
+            }
+
+            await LoadData();
+        }
+    }
+
+    private async Task ResetPassword(UserAuthInfoModel model)
+    {
+        bool confirmed = await Dialogs.ConfirmAsync(model.UserName + " 의 암호를 초기화 하시겠습니까 ?", "암호 초기화");
+        if (!confirmed)
+            return;
+
+        model.Password = Constants.UserDefaultPassword;
+        var result = await IdentitySvc.ResetPasswordAsync(model.UserName, model.Password);
+
+        if (result.Succeeded)
+        {
+            this.ShowErrors = false;
+
+            UserManagementNotificationComponent.Show(new NotificationModel
+                {
+                    Text = $"사용자({model.UserName}) 암호초기화({Constants.UserDefaultPassword}) 성공",
+                    ThemeColor = "success",
+                    //CloseAfter = 3000
+                });
+        }
+        else
+        {
+            string reason = "";
+            if (result.Errors.Count() > 0)
+                reason = result.Errors.First().Description;
+            this.ShowErrors = true;
+            //await ActivateAlert("Role변경 실패", reason);
+        }
+    }
+
+    private void ShowAddUserDialog(GridCommandEventArgs args)
+    {
+        if (bIsAdmin == false)
+            return;
+
+        AddUserDialogVisible = true;
+    }
+
+    //=== 사용자 추가완료 후 처리 루틴: 사용자 정보를 다시 가져와서 표시
+    private async void OnAddUserFinished(RegisterRequestModel newRegisterRequestModel)
+    {
+        AddUserDialogVisible = false;
+        await LoadData();
+        StateHasChanged();
+    }
+
+    //=== Dialogs
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+
+    public string Title { get; set; }
+
+    public string Message { get; set; }
+
+    public async Task ActivateAlert()
+    {
+        if (string.IsNullOrWhiteSpace(Title))
+        {
+            await Dialogs.AlertAsync("Something went wrong!");
+        }
+        else
+        {
+            await Dialogs.AlertAsync("Something went wrong!", Title);
+        }
+
+        Message = "The user saw and closed an Alert dialog.";
+    }
+
+    public async Task ActivateConfirm()
+    {
+        bool confirmed;
+        if (string.IsNullOrWhiteSpace(Title))
+        {
+            confirmed = await Dialogs.ConfirmAsync("Are you sure?");
+        }
+        else
+        {
+            confirmed = await Dialogs.ConfirmAsync("Are you sure?", Title);
+        }
+
+        var confirmMessage = confirmed ? "confirmed" : "canceled";
+
+        Message = $"The user {confirmMessage} the dialog.";
+    }
+
+    public async Task ActivatePrompt()
+    {
+        string input;
+        if (string.IsNullOrWhiteSpace(Title))
+        {
+            input = await Dialogs.PromptAsync("Please, enter your answer.");
+        }
+        else
+        {
+            input = await Dialogs.PromptAsync("Please, enter your answer.", Title);
+        }
+
+        Message = $"The returned user input is \"{input}\".";
+    }
+
+}
+
+<style>
+    .k-grid td, .k-grid tr {
+        background-color: #E0E0E0;
+        color: black;
+        border-width: 0px 1px 1px 0px !important;
+        border-color: white !important;
+    }
+
+    .k-grid-header-wrap th {
+        background-color: teal;
+        color: white;
+        border-width: 0px 1px 1px 0px !important;
+        border-color: white !important;
+    }
+
+    /*
+            .k-grid-header {
+                color: whitesmoke;
+                background-color: teal;
+            }
+        */
+
+    .k-grid .k-focused-cell {
+        background-color: cornflowerblue;
+    }
+
+    .k-grid .k-disabled-cell {
+        background-color: #CACACA;
+    }
+
+    .k-grid .userinput-empty {
+        //color: dodgerblue;
+        background-color: #E0FAFA;
+        //font-weight: bold;
+    }
+
+    .k-grid .userinput-valid {
+        color: dodgerblue;
+        background-color: #C0D8DA;
+        font-weight: bold;
+    }
+
+    .k-grid .userinput-invalid {
+        color: red !important;
+        background-color: sandybrown;
+        font-weight: bold !important;
+        //opacity: 0.7;
+    }
+
+    /* CENTER */
+    /* non-sortable headers */
+    .k-grid th.center-me {
+        text-align: center;
+    }
+
+    /* sortable headers */
+    th.center-me .k-cell-inner > .k-link {
+        justify-content: center;
+    }
+
+    /* RIGHT */
+    /* non-sortable headers */
+    .k-grid th.align-right {
+        text-align: right;
+    }
+
+    /* sortable headers */
+    th.align-right .k-cell-inner > .k-link {
+        justify-content: right;
+    }
+
+    /* unbound and non-filterable columns */
+    .k-grid-header th.align-right.right-padding {
+        padding-right: 12px;
+    }
+
+    /* filterable grid, sortable non-filterable columns */
+    .k-grid-header th.align-right.right-padding > .k-cell-inner {
+        margin-right: 0;
+    }
+</style>
+
+<style>
+    .add-user-button {
+        height: 40px;
+    }
+
+</style>
