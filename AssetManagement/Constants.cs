@@ -2,8 +2,8 @@
 {
     public class Constants
     {
-        public const string BaseVersion = "1.0.0";
-        public const string BaseTitle = "FST Digital System";
+        public const string BaseVersion = "0.7.0";
+        public const string BaseTitle = "FST IT자산 관리시스템";
         public const string UserDefaultPassword = "1q2w3e4r!@";
 
         public class Common
