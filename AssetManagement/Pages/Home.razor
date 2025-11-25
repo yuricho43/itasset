@@ -27,9 +27,6 @@
         <h2>@gStringUser (@gStringName)가(이) 로그인 되었습니다.</h2>
         <h2>Role은 @gStringRole 입니다.</h2>
         <br />
-        <strong>Row End : </strong>
-        <TelerikTextBox Id="rowEnd" @bind-Value="@tRowEnd" Width="60px" />
-
         <TelerikButton Class="SearchButton" ThemeColor="success" Enabled="true" OnClick="@ReadAssetFile" Icon="SvgIcon.FileExcel">Read Excel</TelerikButton>
 
     </Authorized>
@@ -42,8 +39,6 @@
     public string gStringUser = "A";
     public string gStringRole = "A";
     public string gStringName = "A";
-
-    private string tRowEnd { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,7 +61,7 @@
         }
     }
 
-    private void ReadAssetFile()
+    private async void ReadAssetFile()
     {
 
         Workbook workbook;
@@ -83,9 +78,10 @@
         Worksheet worksheet = workbook.Worksheets[0];
         string[] values = new string[30];
         string rowValue = "";
-        int iRowEnd = int.Parse(tRowEnd);
+        int iRowEnd = 10000; 
 
-        //--- Cell은 0 base
+        //--- Cell은 0 base, start row = 2 (0: 공백, 1: header)
+        //    iRowEnd 기준 : 고유 ID항목이 FST-로 시작하지 않으면 끝낸다.
 
         for (int row = 2; row <= iRowEnd; row++)
         {
@@ -98,9 +94,14 @@
 
             }
 
+            if (values[1].Contains("FST-") != true || values[2].Length <=3)     // 고유식별번호 형식에 맞아야 하고, 자산번호 있어야 한다.
+            {
+                return;
+            }
+
             Console.WriteLine("Row = {0} : {1}", row, rowValue);
 
-            svcAsset.InsertIntoAssetTable(values, gStringUser);
+            await svcAsset.InsertIntoAssetTable(values, gStringUser);
         }
 
     }

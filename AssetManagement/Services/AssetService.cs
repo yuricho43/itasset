@@ -13,7 +13,7 @@ namespace AssetManagement.Services
         }
 
         //--- Insert int AssetMain
-        public bool InsertIntoAssetTable(string[] values, string usernm)
+        public async Task<bool> InsertIntoAssetTable(string[] values, string usernm)
         {
             bool bRet = true;
 
@@ -28,7 +28,7 @@ namespace AssetManagement.Services
                 SetAssetValueWithArray(ref iAsset, values, usernm);
 
                 _dbContextAsset.iTAssetMains.Add(iAsset);
-                int iSaved = _dbContextAsset.SaveChanges();
+                int iSaved = await _dbContextAsset.SaveChangesAsync();
 
                 return true;
             }
@@ -43,6 +43,12 @@ namespace AssetManagement.Services
             //      - History Change Table에 추가한다.        
 
             return bRet;
+        }
+
+        public List<ITAssetMain> GetAssetAll()
+        {
+            List<ITAssetMain> lstAsset = _dbContextAsset.iTAssetMains.ToList();
+            return lstAsset;
         }
 
         private void SetAssetValueWithArray(ref ITAssetMain iAsset, string[] values, string usernm)
