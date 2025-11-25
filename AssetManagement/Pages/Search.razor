@@ -37,7 +37,7 @@
                 PageSize=@gPageSize
                 Navigable="true"
                 Width="85vw"
-                Height="75vh">
+                Height="80vh">
                     <GridToolBarTemplate>
                         <GridSearchBox Placeholder="@Placeholder" Width="300px" DebounceDelay="@DebounceDelay" />
                         <span>Write in the textbox on the left-hand side to filter all string columns.</span>
@@ -53,31 +53,32 @@
                     </GridSettings>
 
                     <GridColumns>
-                        <GridColumn Field=@nameof(ITAssetMain.Uuid) Width="110px" Title="고유식별번호" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.AssetNo) Width="110px" Title="자산번호" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.User) Width="110px" Title="사용자" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.MonitorNo) Width="110px" Title="모니터번호" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.MonitorInch) Width="110px" Title="모니터인치" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.MonitorNum) Width="110px" Title="모니터수량" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.Department) Width="110px" Title="수량" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.DeviceType) Width="110px" Title="장비유형" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.DeviceMaker) Width="110px" Title="제조사" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.DeviceModel) Width="110px" Title="모델명" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.CpuType) Width="110px" Title="CPU" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.RamType) Width="110px" Title="RAM" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.StorageType) Width="110px" Title="저장장치" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.VgaType) Width="110px" Title="VGA" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.WMacAddr) Width="110px" Title="W-MAC" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.DeviceSerial) Width="110px" Title="S/N" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.OsType) Width="110px" Title="운영체제" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.DatePurchase) Width="110px" Title="구입일" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.Uuid) Width="90px" Title="고유식별번호" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.AssetNo) Width="60px" Title="자산번호" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.User) Width="70px" Title="사용자" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MonitorNo) Width="80px" Title="모니터번호" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MonitorInch) Width="80px" Title="모니터인치" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MonitorNum) Width="80px" Title="모니터수량" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.Department) Width="110px" Title="부서" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceType) Width="80px" Title="장비유형" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceMaker) Width="80px" Title="제조사" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceModel) Width="150px" Title="모델명" Sortable=true>
+                        </GridColumn>
+                        <GridColumn Field=@nameof(ITAssetMain.CpuType) Width="100px" Title="CPU" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.RamType) Width="70px" Title="RAM" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.StorageType) Width="80px" Title="저장장치" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.VgaType) Width="140px" Title="VGA" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.WMacAddr) Width="120px" Title="W-MAC" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceSerial) Width="100px" Title="S/N" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.OsType) Width="90px" Title="운영체제" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DatePurchase) Width="90px" Title="구입일" Sortable=true />
                         <GridColumn Field=@nameof(ITAssetMain.InstallPlace) Width="110px" Title="설치장소" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.IpAddr) Width="110px" Title="IP주소" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.MacAddr) Width="110px" Title="MAC주소" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.Etc) Width="110px" Title="비고" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.Creator) Width="110px" Title="작성자" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.DateCreate) Width="110px" Title="작성일" Sortable=true />
-                        <GridColumn Field=@nameof(ITAssetMain.DateUpdate) Width="110px" Title="수정일" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.IpAddr) Width="90px" Title="IP주소" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MacAddr) Width="120px" Title="MAC주소" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.Etc) Width="120px" Title="비고" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.Creator) Width="90px" Title="작성자" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DateCreate) DisplayFormat="{0:yyyy년 MM월}" Width="90px" Title="작성일" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DateUpdate) Width="90px" Title="수정일" Sortable=true />
                     </GridColumns>
 
                 </TelerikGrid>
@@ -138,3 +139,11 @@
     }
 
 }
+
+<style>
+.text-ellipsis {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+</style>

@@ -28,7 +28,7 @@
         <h2>Role은 @gStringRole 입니다.</h2>
         <br />
         <TelerikButton Class="SearchButton" ThemeColor="success" Enabled="true" OnClick="@ReadAssetFile" Icon="SvgIcon.FileExcel">Read Excel</TelerikButton>
-
+        Added=@tAdded, Updated=@tUpdated
     </Authorized>
     <NotAuthorized>
         <h2>    로그인을 먼저 하세요</h2>
@@ -39,6 +39,8 @@
     public string gStringUser = "A";
     public string gStringRole = "A";
     public string gStringName = "A";
+    private int tAdded = 0;
+    private int tUpdated = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,7 +84,8 @@
 
         //--- Cell은 0 base, start row = 2 (0: 공백, 1: header)
         //    iRowEnd 기준 : 고유 ID항목이 FST-로 시작하지 않으면 끝낸다.
-
+        tAdded = 0;
+        tUpdated = 0;
         for (int row = 2; row <= iRowEnd; row++)
         {
             rowValue = "";
@@ -96,13 +99,20 @@
 
             if (values[1].Contains("FST-") != true || values[2].Length <=3)     // 고유식별번호 형식에 맞아야 하고, 자산번호 있어야 한다.
             {
+                StateHasChanged();
                 return;
             }
 
             Console.WriteLine("Row = {0} : {1}", row, rowValue);
 
-            await svcAsset.InsertIntoAssetTable(values, gStringUser);
+            var iRet = await svcAsset.InsertIntoAssetTable(values, gStringUser);
+            if (iRet == 1)
+                tAdded++;
+            else if (iRet == 2)
+                tUpdated++;
         }
+
+        StateHasChanged();
 
     }
 

@@ -1,25 +1,30 @@
 ﻿using AssetManagement.ModelAsset;
 using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
+using Telerik.Documents.Primitives;
 
 namespace AssetManagement.Services
 {
     public class AssetService
     {
         private readonly AssetDbContext _dbContextAsset;
+        private static int isNumAdded = 0;
+        private static int isNumUpdated = 0;
+        private static int isNumDeleted = 0;
         public AssetService(AssetDbContext dbContextAsset) 
         {
             _dbContextAsset = dbContextAsset;
         }
 
         //--- Insert int AssetMain
-        public async Task<bool> InsertIntoAssetTable(string[] values, string usernm)
+        public async Task<int> InsertIntoAssetTable(string[] values, string usernm)
         {
-            bool bRet = true;
+            int iRet = 0;   // 1:Added, 2:Updated
 
-            // 1. 기존 Db에 동일한 Uuid가 있는지 체크한다.
-          
-            List<ITAssetMain> lstAsset = _dbContextAsset.iTAssetMains.Where(x => x.Uuid == values[2]).ToList();
+            
+            // 1. 기존 Db에 동일한 Uuid가 있는지 체크한다.     
+            List<ITAssetMain> lstAsset = _dbContextAsset.iTAssetMains.Where(x => x.Uuid == values[1]).ToList();
 
             // 1.1 없으면 단순하게 추가
             if (lstAsset == null || lstAsset.Count == 0)
@@ -29,8 +34,8 @@ namespace AssetManagement.Services
 
                 _dbContextAsset.iTAssetMains.Add(iAsset);
                 int iSaved = await _dbContextAsset.SaveChangesAsync();
-
-                return true;
+                iRet = 1;
+                return iRet;
             }
 
 
@@ -40,9 +45,10 @@ namespace AssetManagement.Services
 
             // 2.2 다른게 있으면
             //      - Version을 증가 시켜서 기존 것을 대체한다.
-            //      - History Change Table에 추가한다.        
+            //      - History Change Table에 추가한다.
+            // iRet = 2;
 
-            return bRet;
+            return iRet;
         }
 
         public List<ITAssetMain> GetAssetAll()
