@@ -20,10 +20,10 @@ namespace AssetManagement.Services
         //--- Insert int AssetMain
         public async Task<int> InsertIntoAssetTable(string[] values, string usernm)
         {
-            int iRet = 0;   // 1:Added, 2:Updated
+            int iRet = 2;   // 1:Added, 2:Updated
 
             
-            // 1. 기존 Db에 동일한 Uuid가 있는지 체크한다.     
+            // 1. 기존 Db에 동일한 Uuid가 있는지 체크한다.      
             List<ITAssetMain> lstAsset = _dbContextAsset.iTAssetMains.Where(x => x.Uuid == values[1]).ToList();
 
             // 1.1 없으면 단순하게 추가
@@ -31,6 +31,7 @@ namespace AssetManagement.Services
             {
                 ITAssetMain iAsset = new ITAssetMain();
                 SetAssetValueWithArray(ref iAsset, values, usernm);
+                iAsset.Version = 1;
 
                 _dbContextAsset.iTAssetMains.Add(iAsset);
                 int iSaved = await _dbContextAsset.SaveChangesAsync();
@@ -40,12 +41,12 @@ namespace AssetManagement.Services
 
 
             // 2. 있으면 각 column 내용들을 비교하여 다른컬럼이 있는지 체크한다.
-            //    체크할 column
+            //    체크할 column : 사용자, 부서, RAM, 저장장치, VA, 운영체제, 설치장소, IP주소, MAC주소, 비고
             // 2.1 다른게 없으면 무시
-
+            //     * 기존것 Update
             // 2.2 다른게 있으면
+            //      - 기존것은 HistoryTable에 추가
             //      - Version을 증가 시켜서 기존 것을 대체한다.
-            //      - History Change Table에 추가한다.
             // iRet = 2;
 
             return iRet;
@@ -55,6 +56,13 @@ namespace AssetManagement.Services
         {
             List<ITAssetMain> lstAsset = _dbContextAsset.iTAssetMains.ToList();
             return lstAsset;
+        }
+
+        public ITAssetMain GetLastAsset()
+        {
+            //--- AsNoTracking : 항상 새로 가져온다.
+            ITAssetMain aAsset = _dbContextAsset.iTAssetMains.AsNoTracking().OrderBy(t=> t.Uuid).LastOrDefault();
+            return aAsset;
         }
 
         private void SetAssetValueWithArray(ref ITAssetMain iAsset, string[] values, string usernm)

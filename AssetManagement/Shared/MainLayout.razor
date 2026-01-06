@@ -91,43 +91,24 @@
 
     static IEnumerable<DrawerItem> DrawerItems_Admin { get; set; } = new List<DrawerItem>
     {
-        new DrawerItem { Text = "Home", Title="Home", Url = "/home", Icon =SvgIcon.Home },
-        new DrawerItem { Separator = true },
-        new DrawerItem { Text = "자산 입력", Title="자산 입력", Url = "/input", Icon = SvgIcon.Grid },
         new DrawerItem { Text = "자산 검색", Title="자산 검색", Url = "/search", Icon = SvgIcon.Search },
-        new DrawerItem { Text = "DashBoard", Title="DashBoard", Url = "/dashboard", Icon = SvgIcon.Data },
-        new DrawerItem { Text = "Help", Title="Help", Url = "/help", Icon = SvgIcon.Sparkles },
         new DrawerItem { Separator = true },
         new DrawerItem { Text = "Admin", Title="Admin", Url = "/adminpage", Icon = SvgIcon.Eyedropper },
     };
 
     static IEnumerable<DrawerItem> DrawerItems_Manager { get; set; } = new List<DrawerItem>
     {
-        new DrawerItem { Text = "Home", Title="Home", Url = "/home", Icon =SvgIcon.Home },
-        new DrawerItem { Separator = true },
-        new DrawerItem { Text = "자산 입력", Title="자산 입력", Url = "/input", Icon = SvgIcon.Grid },
         new DrawerItem { Text = "자산 검색", Title="자산 검색", Url = "/search", Icon = SvgIcon.Search },
-        new DrawerItem { Text = "DashBoard", Title="DashBoard", Url = "/dashboard", Icon = SvgIcon.Data },
-        new DrawerItem { Text = "Help", Title="Help", Url = "/help", Icon = SvgIcon.Sparkles },
     };
 
     static IEnumerable<DrawerItem> DrawerItems_General { get; set; } = new List<DrawerItem>
     {
-        new DrawerItem { Text = "Home", Title="Home", Url = "/home", Icon =SvgIcon.Home },
-        new DrawerItem { Separator = true },
-        new DrawerItem { Text = "자산 입력", Title="자산 입력", Url = "/input", Icon = SvgIcon.Grid },
         new DrawerItem { Text = "자산 검색", Title="자산 검색", Url = "/search", Icon = SvgIcon.Search },
-        new DrawerItem { Text = "DashBoard", Title="DashBoard", Url = "/dashboard", Icon = SvgIcon.Data },
-        new DrawerItem { Text = "Help", Title="Help", Url = "/help", Icon = SvgIcon.Sparkles },
     };
 
     static IEnumerable<DrawerItem> DrawerItems_Reporter { get; set; } = new List<DrawerItem>
     {
-        new DrawerItem { Text = "Home", Title="Home", Url = "/home", Icon =SvgIcon.Home },
-        new DrawerItem { Separator = true },
         new DrawerItem { Text = "자산 검색", Title="자산 검색", Url = "/search", Icon = SvgIcon.Search },
-        new DrawerItem { Text = "DashBoard", Title="DashBoard", Url = "/dashboard", Icon = SvgIcon.Data },
-        new DrawerItem { Text = "Help", Title="Help", Url = "/help", Icon = SvgIcon.Sparkles },
     };
 
     static Dictionary<string, IEnumerable<DrawerItem>> RoleToDrawerItems = new Dictionary<string, IEnumerable<DrawerItem>>

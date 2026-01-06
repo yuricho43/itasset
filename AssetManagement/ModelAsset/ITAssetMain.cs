@@ -32,15 +32,15 @@ namespace AssetManagement.ModelAsset
         public string? IpAddr { get; set; }
         public string? MacAddr { get; set; }
         public string? Etc { get; set; }
-
+        
         //--- Custom
         public string CurrentStatus { get; set; }
         public string Creator { get; set; }
         public string Updator { get; set; }
+        public int    Version { get; set; }
 
         public DateTime DateCreate { get; set; }
         public DateTime? DateUpdate { get; set; }
-
     }
 
 

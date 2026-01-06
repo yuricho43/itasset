@@ -1,21 +1,377 @@
 ﻿@page "/input"
+@using AssetManagement.Common
 @using AssetManagement.Entities;
+@using AssetManagement.ModelAsset
+@using AssetManagement.Services
+@using Microsoft.AspNetCore.Identity
+@using System.Text.RegularExpressions
 @using Telerik.DataSource
 @using Telerik.DataSource.Extensions
 @using Telerik.FontIcons;
+@using Telerik.SvgIcons
+@using Telerik.Windows.Documents.Spreadsheet.Model
 
-@inject ILogger<AuthTest> Logger
+@inject AssetService svcAsset
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+@inject CustomIdentityService IdentitySvc
 
 <PageTitle>입력</PageTitle>
-
 <PageTitle>FST Digital System</PageTitle>
-<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 데이타 입력 </div>
-
 <AuthorizeView>
     <Authorized>
-        <h2>데이타 입력 Page 입니다.</h2>
+        <TelerikCard>
+            <CardHeader Class="page">
+            </CardHeader>
+
+            <CardBody>
+                <h2 style="color:blue"><strong>Excel Data 입력</strong></h2>
+                <TelerikButton Class="SearchButton" ThemeColor="success"
+                Enabled="true" OnClick="@ReadAssetFile" Icon="SvgIcon.FileExcel">Excel자산 추가</TelerikButton>
+                <h7><strong>Added=@tAdded, Updated=@tUpdated</strong></h7>
+                <div />
+                <h7 style="color:orange">ExcelData는 서버의 /csfiles에 asset.xlsx로 저장해야 한다</h7>
+            </CardBody>
+            <CardBody>
+                <h2 style="color:blue"><strong>단품 자산 입력</strong>(@gNewUUID)</h2>
+                <TelerikGrid Class="sbms-grid"
+                @ref="@GridRefAsset1"
+                Data="@gListToBeAdd"
+                EditMode="@GridEditMode.Incell"
+                OnUpdate="@UpdateAssetData1"
+                Pageable="false"
+                Groupable="false"
+                Sortable="false"
+                Resizable="false"
+                Reorderable="false"
+                Width="85vw"
+                Height="60px">
+                    <GridColumns>
+                        <GridColumn Field=@nameof(ITAssetMain.AssetNo) Width="100px" Title="자산번호" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.User) Width="100px" Title="사용자" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MonitorNo) Width="100px" Title="모니터번호" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MonitorInch) Width="100px" Title="모니터인치" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MonitorNum) Width="100px" Title="모니터수량" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.Department) Width="100px" Title="부서" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceType) Width="100px" Title="장비유형" Sortable=true />
+                    </GridColumns>
+                </TelerikGrid>
+                <div />
+                <TelerikGrid Class="sbms-grid"
+                @ref="@GridRefAsset2"
+                Data="@gListToBeAdd"
+                EditMode="@GridEditMode.Incell"
+                OnUpdate="@UpdateAssetData2"
+                Pageable="false"
+                Groupable="false"
+                Sortable="false"
+                Resizable="false"
+                Reorderable="false"
+                Width="85vw"
+                Height="60px">
+                    <GridColumns>
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceMaker) Width="100px" Title="제조사" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceModel) Width="100px" Title="모델명" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.CpuType) Width="100px" Title="CPU" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.RamType) Width="100px" Title="RAM" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.StorageType) Width="100px" Title="저장장치" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.VgaType) Width="100px" Title="VGA" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.WMacAddr) Width="100px" Title="W-MAC" Sortable=true />
+                    </GridColumns>
+                </TelerikGrid>
+                <div />
+                <TelerikGrid Class="sbms-grid"
+                @ref="@GridRefAsset3"
+                Data="@gListToBeAdd"
+                EditMode="@GridEditMode.Incell"
+                OnUpdate="@UpdateAssetData3"
+                Pageable="false"
+                Groupable="false"
+                Sortable="false"
+                Resizable="false"
+                Reorderable="false"
+                Width="85vw"
+                Height="60px">
+                    <GridColumns>
+                        <GridColumn Field=@nameof(ITAssetMain.DeviceSerial) Width="100px" Title="S/N" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.OsType) Width="100px" Title="운영체제" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.DatePurchase) Width="100px" Title="구입일" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.InstallPlace) Width="100px" Title="설치장소" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.IpAddr) Width="100px" Title="IP주소" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.MacAddr) Width="100px" Title="MAC주소" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.Etc) Width="100px" Title="비고" Sortable=true />
+                    </GridColumns>
+                </TelerikGrid>
+                <div />
+                <TelerikButton Class="SaveButton" ThemeColor="info"
+                Enabled="true" OnClick="@AddOneAsset" Icon="SvgIcon.Save">자산 1개 추가</TelerikButton>
+            </CardBody>
+        </TelerikCard>
     </Authorized>
+
     <NotAuthorized>
         <h2>    로그인을 먼저 하세요</h2>
     </NotAuthorized>
 </AuthorizeView>
+@code {
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+
+    public string gStringUser = "A";
+    public string gStringRole = "A";
+    public string gStringName = "A";
+    private int tAdded = 0;
+    private int tUpdated = 0;
+    private string gNewUUID = "";
+
+    //--- Edit Grid
+    private List<ITAssetMain> gListToBeAdd = new List<ITAssetMain>();
+    private TelerikGrid<ITAssetMain> GridRefAsset1 { get; set; }
+    private TelerikGrid<ITAssetMain> GridRefAsset2 { get; set; }
+    private TelerikGrid<ITAssetMain> GridRefAsset3 { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        string strUser = "";
+        IList<string> currentUserRoles;
+        try
+        {
+            strUser = UserManager.GetUserName(HttpContextAccessor.HttpContext.User);
+            gStringUser = strUser;
+
+            currentUserRoles = await IdentitySvc.GetCurrentUserRolesAsync();
+            gStringRole = currentUserRoles.First().ToString();
+            gStringName = await IdentitySvc.GetCurrentLoginNamePublic();
+        }
+        catch
+        {
+
+        }
+        SetLastAsset();
+    }
+
+    private void SetLastAsset()
+    {
+        gListToBeAdd.Clear();
+        //--- Set to Last Asset for a new asset
+        ITAssetMain asset = svcAsset.GetLastAsset();
+        if (asset != null)
+        {
+            asset.Uuid = GetNextUuid(asset.Uuid);
+            gNewUUID = asset.Uuid;
+            gListToBeAdd.Add(asset);
+            if (GridRefAsset1 != null)
+                GridRefAsset1.Rebind();
+            if (GridRefAsset2 != null)
+                GridRefAsset2.Rebind();
+            if (GridRefAsset3 != null)
+                GridRefAsset3.Rebind();
+        }
+        StateHasChanged();
+
+    }
+
+    private string GetNextUuid(string oldId)
+    {
+        var match = Regex.Match(oldId, @"^(.*?)(\d+)$");
+
+        if (!match.Success)
+        {
+            throw new Exception("문자열 끝에 숫자가 없습니다.");
+        }
+
+        string prefix = match.Groups[1].Value;   // FST-
+        string number = match.Groups[2].Value;   // 0004
+
+        int num = int.Parse(number) + 1;
+        string result = prefix + num.ToString(new string('0', number.Length));
+        return result;
+    }
+    private async void ReadAssetFile()
+    {
+        //await Dialogs.AlertAsync("Excel Data를 Database에 저장합니다", "자산입력");
+        bool confirm = await Dialogs.ConfirmAsync("Excel Data를 입력하시겠습니까 ?", "자산입력");
+        if (confirm == false)
+            return;
+
+        Workbook workbook;
+
+        try
+        {
+            workbook = ExcelLoader.LoadExcelFile("/csfiles/asset.xlsx");
+        }
+        catch (Exception ex)
+        {
+            await Dialogs.AlertAsync("Excel file maybe opened!!!");
+            Console.WriteLine("Excel file maybe opened!!!");
+            return;
+        }
+
+        Worksheet worksheet = workbook.Worksheets[0];
+        string[] values = new string[30];
+        string rowValue = "";
+        int iRowEnd = 10000;
+
+        //--- Cell은 0 base, start row = 2 (0: 공백, 1: header)
+        //    iRowEnd 기준 : 고유 ID항목이 FST-로 시작하지 않으면 끝낸다.
+        tAdded = 0;
+        tUpdated = 0;
+        for (int row = 2; row <= iRowEnd; row++)
+        {
+            rowValue = "";
+
+            for (int column = 1; column < 23; column++)
+            {
+                values[column] = worksheet.Cells[row, column].GetValue()?.Value?.RawValue ?? "";
+                rowValue = rowValue + " ! " + values[column];
+
+            }
+
+            if (values[1].Contains("FST-") != true || values[2].Length <= 3)     // 고유식별번호 형식에 맞아야 하고, 자산번호 있어야 한다.
+            {
+                StateHasChanged();
+                return;
+            }
+
+            Console.WriteLine("Row = {0} : {1}", row, rowValue);
+
+            var iRet = await svcAsset.InsertIntoAssetTable(values, gStringUser);
+            if (iRet == 1)
+                tAdded++;
+            else if (iRet == 2)
+                tUpdated++;
+        }
+
+        StateHasChanged();
+
+    }
+
+    private void AddOneAsset()
+    {
+
+        //--- Save가 성공했으면, UUID를 다시 설정한다.
+        SetLastAsset();
+    }
+
+    private async void UpdateAssetData1(GridCommandEventArgs args)
+    {
+        if (gListToBeAdd.Count > 0)
+        {
+            ITAssetMain asset = (ITAssetMain)args.Item;
+            gListToBeAdd[0].AssetNo = asset.AssetNo;
+            gListToBeAdd[0].User = asset.User;
+            gListToBeAdd[0].MonitorNo = asset.MonitorNo;
+            gListToBeAdd[0].MonitorInch = asset.MonitorInch;
+            gListToBeAdd[0].MonitorNum = asset.MonitorNum;
+            gListToBeAdd[0].Department = asset.Department;
+            gListToBeAdd[0].DeviceType = asset.DeviceType;
+        }
+    }
+
+    private async void UpdateAssetData2(GridCommandEventArgs args)
+    {
+        if (gListToBeAdd.Count > 0)
+        {
+            ITAssetMain asset = (ITAssetMain)args.Item;
+            gListToBeAdd[0].DeviceMaker = asset.DeviceMaker;
+            gListToBeAdd[0].DeviceModel = asset.DeviceModel;
+            gListToBeAdd[0].CpuType = asset.CpuType;
+            gListToBeAdd[0].RamType = asset.RamType;
+            gListToBeAdd[0].StorageType = asset.StorageType;
+            gListToBeAdd[0].VgaType = asset.VgaType;
+            gListToBeAdd[0].WMacAddr = asset.WMacAddr;
+        }
+    }
+
+    private async void UpdateAssetData3(GridCommandEventArgs args)
+    {
+        if (gListToBeAdd.Count > 0)
+        {
+            ITAssetMain asset = (ITAssetMain)args.Item;
+            gListToBeAdd[0].DeviceSerial = asset.DeviceSerial;
+            gListToBeAdd[0].OsType = asset.OsType;
+            gListToBeAdd[0].DatePurchase = asset.DatePurchase;
+            gListToBeAdd[0].InstallPlace = asset.InstallPlace;
+            gListToBeAdd[0].IpAddr = asset.IpAddr;
+            gListToBeAdd[0].MacAddr = asset.MacAddr;
+            gListToBeAdd[0].Etc = asset.Etc;
+        }
+    }
+
+}
+
+<style>
+    .k-grid td, .k-grid tr {
+        background-color: #E0E0E0;
+        color: black;
+        border-width: 0px 1px 1px 0px !important;
+        border-color: white !important;
+    }
+
+    .k-grid-header-wrap th {
+        background-color: teal;
+        color: white;
+        border-width: 0px 1px 1px 0px !important;
+        border-color: white !important;
+    }
+    .k-grid .k-focused-cell {
+        background-color: cornflowerblue;
+    }
+
+    .k-grid .k-disabled-cell {
+        background-color: #CACACA;
+    }
+
+    .k-grid .userinput-empty {
+        //color: dodgerblue;
+        background-color: #E0FAFA;
+        //font-weight: bold;
+    }
+
+    .k-grid .userinput-valid {
+        color: dodgerblue;
+        background-color: #C0D8DA;
+        font-weight: bold;
+    }
+
+    .k-grid .userinput-invalid {
+        color: red !important;
+        background-color: sandybrown;
+        font-weight: bold !important;
+        //opacity: 0.7;
+    }
+
+    /* CENTER */
+    /* non-sortable headers */
+    .k-grid th.center-me {
+        text-align: center;
+    }
+
+    /* sortable headers */
+    th.center-me .k-cell-inner > .k-link {
+        justify-content: center;
+    }
+
+    /* RIGHT */
+    /* non-sortable headers */
+    .k-grid th.align-right {
+        text-align: right;
+    }
+
+    /* sortable headers */
+    th.align-right .k-cell-inner > .k-link {
+        justify-content: right;
+    }
+
+    /* unbound and non-filterable columns */
+    .k-grid-header th.align-right.right-padding {
+        padding-right: 12px;
+    }
+
+        /* filterable grid, sortable non-filterable columns */
+        .k-grid-header th.align-right.right-padding > .k-cell-inner {
+            margin-right: 0;
+        }
+</style>

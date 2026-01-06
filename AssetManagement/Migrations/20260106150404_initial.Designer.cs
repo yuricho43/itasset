@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AssetManagement.Migrations.AssetDb
+namespace AssetManagement.Migrations
 {
     [DbContext(typeof(AssetDbContext))]
-    [Migration("20251124163252_addIpAddr")]
-    partial class addIpAddr
+    [Migration("20260106150404_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,28 +33,95 @@ namespace AssetManagement.Migrations.AssetDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AssetId")
+                    b.Property<string>("AssetNo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ChangeColumns")
+                    b.Property<string>("CpuType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Creator")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ChangeDescripton")
+                    b.Property<string>("CurrentStatus")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ChangeReason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Changer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DateChange")
+                    b.Property<DateTime>("DateCreate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("DatePurchase")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DateUpdate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Department")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeviceMaker")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeviceModel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeviceSerial")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeviceType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Etc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InstallPlace")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MacAddr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MonitorInch")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MonitorNo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("MonitorNum")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OsType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RamType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StorageType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Updator")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("User")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Uuid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VgaType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WMacAddr")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -79,6 +146,9 @@ namespace AssetManagement.Migrations.AssetDb
                     b.Property<string>("Selector")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("bUsed")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -173,6 +243,9 @@ namespace AssetManagement.Migrations.AssetDb
                     b.Property<string>("Uuid")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.Property<string>("VgaType")
                         .HasColumnType("nvarchar(max)");

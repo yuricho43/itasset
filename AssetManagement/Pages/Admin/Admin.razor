@@ -103,7 +103,7 @@
     private bool bIsAdmin { get; set; } = false;
 
     //--- Roles
-    public List<string> UserRoleNames { get; set; } = new List<string>();
+    private List<string> UserRoleNames { get; set; } = new List<string> { "Reporter", "General", "Manager", "Admin" };
     private IList<string> currentUserRoles;
 
     protected override async Task OnInitializedAsync()
@@ -117,13 +117,14 @@
 
         await LoadData();
 
+        /*
         UserRoleNames.Clear();
         List<IdentityRole> UserRoles = IdentitySvc.GetAllRoles();
         foreach (var userRole in UserRoles)
         {
             UserRoleNames.Add(userRole.Name);
         }
-
+        */
         StateHasChanged();
     }
 

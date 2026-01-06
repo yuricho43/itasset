@@ -7,13 +7,12 @@
 @using Telerik.FontIcons;
 @using Telerik.SvgIcons
 
-@inject ILogger<AuthTest> Logger
 @inject AssetService svcAsset
 
 <PageTitle>검색</PageTitle>
 
 <PageTitle>IT자산 관리시스템-검색</PageTitle>
-<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 자산 검색1 </div>
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 자산 검색 </div>
 
 <AuthorizeView>
     <Authorized>
@@ -27,11 +26,11 @@
                 <TelerikGrid Class="sbms-grid"
                 Data="@gListAsset"
                 ConfirmDelete="true"
-                Pageable="true"
-                Groupable="false"
+                Pageable="false"
+                Groupable="true"
                 Sortable="true"
                 Resizable="true"
-                Reorderable="true"
+                Reorderable="false"
                 PageSizeChanged="@OnPageSizeChanged"
                 OnStateInit="@((GridStateEventArgs<ITAssetMain> args) => OnStateInit(args))"
                 PageSize=@gPageSize
@@ -42,6 +41,7 @@
                         <GridSearchBox Placeholder="@Placeholder" Width="300px" DebounceDelay="@DebounceDelay" />
                         <span>Write in the textbox on the left-hand side to filter all string columns.</span>
                         <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel" ThemeColor="warning">Excel출력</GridCommandButton>
+                        <TelerikButton ThemeColor="info" ButtonType="ButtonType.Button" OnClick="@AddAsset">자산추가</TelerikButton>
                         <span class="k-toolbar-spacer"></span>
                     </GridToolBarTemplate>
                     <GridSettings>
@@ -53,7 +53,7 @@
                     </GridSettings>
 
                     <GridColumns>
-                        <GridColumn Field=@nameof(ITAssetMain.Uuid) Width="90px" Title="고유식별번호" Sortable=true />
+                        <GridColumn Field=@nameof(ITAssetMain.Uuid) Width="90px" Title="고유식별번호" Sortable=false />
                         <GridColumn Field=@nameof(ITAssetMain.AssetNo) Width="60px" Title="자산번호" Sortable=true />
                         <GridColumn Field=@nameof(ITAssetMain.User) Width="70px" Title="사용자" Sortable=true />
                         <GridColumn Field=@nameof(ITAssetMain.MonitorNo) Width="80px" Title="모니터번호" Sortable=true />
@@ -95,7 +95,34 @@
     </NotAuthorized>
 </AuthorizeView>
 
+<TelerikWindow Visible="@gIsInputWindowVisible"
+VisibleChanged="InputWindowChangedHandler"
+Modal="true"
+Draggable="true"
+Resizable="true"
+MinHeight="200px"
+Height="95%"
+MaxHeight="98%"
+MinWidth="400px"
+Width="90%"
+MaxWidth="95%">
+    <WindowTitle>
+        <p2><strong style="color:red">자산추가 (Excel파일 입력, 단품 자산 입력)</strong></p2>
+    </WindowTitle>
+    <WindowActions>
+        <WindowAction Name="Close" />
+    </WindowActions>
+    <WindowContent>
+        <CardBody class="form-section">
+            <Input>
+            </Input>
+        </CardBody>
+    </WindowContent>
+</TelerikWindow>
+
 @code {
+    //--- 기존 자료 Input Window
+    bool gIsInputWindowVisible = false;
 
     //--- Pages
     public List<int?> gPageList = new List<int?>
@@ -138,7 +165,92 @@
 
     }
 
+    private void AddAsset()
+    {
+        gIsInputWindowVisible = true;   
+    }
+
+    private void InputWindowChangedHandler(bool currVisible)
+    {
+        gIsInputWindowVisible = currVisible;
+    }
+
 }
+
+<style>
+    .k-grid td, .k-grid tr {
+        background-color: #E0E0E0;
+        color: black;
+        border-width: 0px 1px 1px 0px !important;
+        border-color: white !important;
+    }
+
+    .k-grid-header-wrap th {
+        background-color: teal;
+        color: white;
+        border-width: 0px 1px 1px 0px !important;
+        border-color: white !important;
+    }
+
+    .k-grid .k-focused-cell {
+        background-color: cornflowerblue;
+    }
+
+    .k-grid .k-disabled-cell {
+        background-color: #CACACA;
+    }
+
+    .k-grid .userinput-empty {
+        //color: dodgerblue;
+        background-color: #E0FAFA;
+        //font-weight: bold;
+    }
+
+    .k-grid .userinput-valid {
+        color: dodgerblue;
+        background-color: #C0D8DA;
+        font-weight: bold;
+    }
+
+    .k-grid .userinput-invalid {
+        color: red !important;
+        background-color: sandybrown;
+        font-weight: bold !important;
+        //opacity: 0.7;
+    }
+
+    /* CENTER */
+    /* non-sortable headers */
+    .k-grid th.center-me {
+        text-align: center;
+    }
+
+    /* sortable headers */
+    th.center-me .k-cell-inner > .k-link {
+        justify-content: center;
+    }
+
+    /* RIGHT */
+    /* non-sortable headers */
+    .k-grid th.align-right {
+        text-align: right;
+    }
+
+    /* sortable headers */
+    th.align-right .k-cell-inner > .k-link {
+        justify-content: right;
+    }
+
+    /* unbound and non-filterable columns */
+    .k-grid-header th.align-right.right-padding {
+        padding-right: 12px;
+    }
+
+        /* filterable grid, sortable non-filterable columns */
+        .k-grid-header th.align-right.right-padding > .k-cell-inner {
+            margin-right: 0;
+        }
+</style>
 
 <style>
 .text-ellipsis {

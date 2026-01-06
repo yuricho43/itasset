@@ -20,12 +20,12 @@ namespace AssetManagement.Areas.Identity.Pages.Account
         public string ReturnUrl { get; set; }
         public void OnGet()
         {
-            ReturnUrl = Url.Content("~/home");
+            ReturnUrl = Url.Content("~/search");
         }
 
         public async Task<ActionResult> OnPostAsync()
         {
-            ReturnUrl = Url.Content("~/home");
+            ReturnUrl = Url.Content("~/search");
             if (ModelState.IsValid)
             {
                 var result = await _signInManager.PasswordSignInAsync
