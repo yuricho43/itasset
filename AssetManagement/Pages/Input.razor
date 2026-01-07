@@ -248,9 +248,11 @@
 
     }
 
-    private void AddOneAsset()
+    private async Task AddOneAsset()
     {
-
+        gListToBeAdd[0].Id = 0;
+        gListToBeAdd[0].Uuid = gNewUUID;
+        await svcAsset.Save_One_Asset(gListToBeAdd[0]);
         //--- Save가 성공했으면, UUID를 다시 설정한다.
         SetLastAsset();
     }

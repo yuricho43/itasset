@@ -22,18 +22,18 @@ namespace AssetManagement.Services
         {
             int iRet = 2;   // 1:Added, 2:Updated
 
-            
+
             // 1. 기존 Db에 동일한 Uuid가 있는지 체크한다.      
-            List<ITAssetMain> lstAsset = _dbContextAsset.iTAssetMains.Where(x => x.Uuid == values[1]).ToList();
+            ITAssetMain AssetOld = _dbContextAsset.iTAssetMains.Where(x => x.Uuid == values[1]).FirstOrDefault();
 
             // 1.1 없으면 단순하게 추가
-            if (lstAsset == null || lstAsset.Count == 0)
+            if (AssetOld == null)
             {
-                ITAssetMain iAsset = new ITAssetMain();
-                SetAssetValueWithArray(ref iAsset, values, usernm);
-                iAsset.Version = 1;
+                ITAssetMain iAssetNew = new ITAssetMain();
+                SetAssetValueWithArray(ref iAssetNew, values, usernm);
+                iAssetNew.Version = 1;
 
-                _dbContextAsset.iTAssetMains.Add(iAsset);
+                _dbContextAsset.iTAssetMains.Add(iAssetNew);
                 int iSaved = await _dbContextAsset.SaveChangesAsync();
                 iRet = 1;
                 return iRet;
@@ -49,7 +49,22 @@ namespace AssetManagement.Services
             //      - Version을 증가 시켜서 기존 것을 대체한다.
             // iRet = 2;
 
+            //=== 일단 무조건 Update
+            ITAssetMain iAssetUpdate = new ITAssetMain();
+            SetAssetValueWithArray(ref iAssetUpdate, values, usernm);
+            iAssetUpdate.Version = AssetOld.Version + 1;
+            iAssetUpdate.Id = AssetOld.Id;
+            _dbContextAsset.Entry(AssetOld).CurrentValues.SetValues(iAssetUpdate);
+            int iSaved1 = _dbContextAsset.SaveChanges();
+
             return iRet;
+        }
+
+        public async Task<int> Save_One_Asset(ITAssetMain asset)
+        {
+            _dbContextAsset.iTAssetMains.Add(asset);
+            int iSaved = await _dbContextAsset.SaveChangesAsync();
+            return iSaved;
         }
 
         public List<ITAssetMain> GetAssetAll()
